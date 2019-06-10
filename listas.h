@@ -11,6 +11,8 @@ typedef struct listaLibros {
 typedef struct listaVentas {
         struct listaVentas * ste;
         int IDFactura;
+        int cantLibros;
+        double precioTotal;
         ST_LISTALIBROS * listaLibro;
 } ST_LISTAVENTAS;
 
@@ -24,8 +26,26 @@ ST_LISTALIBROS * crearNodoLista (ST_LIBRO * libro);
 
 void crearLista (ST_LISTALIBROS ** cabecera);
 
+void crearListaVentas (ST_LISTAVENTAS ** cabecera);
+
 void agregarLibroALista (int libroIesimo, FILE * ptrArchivo, ST_LISTALIBROS ** listaVentas);
 
 void mostrarListaLibros (ST_LISTALIBROS ** listaLibros);
+
+void actualizarStock (FILE*ptrArchivo, ST_LISTALIBROS ** listaVentas);
+
+int generarFactura (ST_LISTALIBROS ** listaVenta);
+
+void mostrarListaVentas (ST_LISTAVENTAS ** listaRetirosPorLocal);
+
+void agregarVentaALista (int factura, ST_LISTALIBROS ** listaVentas, ST_LISTAVENTAS ** listaRetirosPorSucursal);
+
+void eliminarVentaDeLista (FILE * ptrArchivo, ST_LISTAVENTAS ** listaVentas);
+
+void crearCola (ST_COLALIBROS * colaVentas);
+
+void agregarVentaACola (int factura, ST_LISTALIBROS ** listaVenta, ST_COLALIBROS * colaVentas);
+
+void mostrar5ElementosDeCola (ST_COLALIBROS * colaVentas);
 
 #endif // LISTAS_H_INCLUDED

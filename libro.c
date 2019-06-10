@@ -3,6 +3,28 @@
 #include <string.h>
 #include "libro.h"
 
+char * enteroACadena (int valor, char * cadena){
+    int cont = 0;
+    char cad [10];
+    int aux = valor;
+    char numero;
+    while ((aux/10)!=0){
+        cont++;
+        aux = aux/10;
+    }
+    cad [cont+1] = '\0';
+    while ((valor/10)!=0){
+        numero = (valor%10) + 48;
+        cad [cont] = numero;
+        valor = valor/10;
+        cont --;
+    }
+    numero = (valor%10) + 48;
+    cad[cont] = numero;
+    strcpy(cadena,cad);
+    return cadena;
+}
+
 void abrirLibro (FILE * nombrePtr, const char * nombreArchivo, const char * tipoApertura){
         if ((nombrePtr =fopen(nombreArchivo, tipoApertura))==NULL){
         exit(EXIT_FAILURE);
@@ -131,21 +153,26 @@ void listarLibros(FILE*ptrArchivo){
     }
 }
 
-int buscarLibroPorISBN (FILE*ptrArchivo){
-    ST_LIBRO libro;
-    char ISBN [10];
-    printf("Escriba ISBN \n");
-    scanf("%s", ISBN);
+int seleccionarLibroPorISBN(char * ISBN, ST_LIBRO * libro, FILE * ptrArchivo){
     int cont = 0;
     fseek(ptrArchivo,0,SEEK_SET);
-    fread(&libro,sizeof(ST_LIBRO),1,ptrArchivo);
-    while ((!feof(ptrArchivo))&&(strcmp(ISBN,libro.ISBN)!=0)){
-        fread(&libro,sizeof(ST_LIBRO),1,ptrArchivo);
+    fread(libro,sizeof(ST_LIBRO),1,ptrArchivo);
+    while ((!feof(ptrArchivo))&&(strcmp(ISBN,libro->ISBN)!=0)){
+        fread(libro,sizeof(ST_LIBRO),1,ptrArchivo);
         cont++;
     }
     if (cont>contarLibros(ptrArchivo)){
         return -1;
     }
+    return cont;
+}
+
+int buscarLibroPorISBN (FILE*ptrArchivo){
+    ST_LIBRO libro;
+    char ISBN [10];
+    printf("Escriba ISBN \n");
+    scanf("%s", ISBN);
+    int cont = seleccionarLibroPorISBN(ISBN, &libro, ptrArchivo);
     return cont;
 }
 

@@ -3,10 +3,9 @@
 #include <string.h>
 #include "consola.h"
 #include "libro.h"
-#include "ventas.h"
 #include "listas.h"
 
-
+// Arreglar eliminar nodos de listas y colas
 
 int main()
 {
@@ -21,9 +20,11 @@ int main()
 
 
     ST_LISTAVENTAS * listaRetirosEnSucursal;
-    ST_COLALIBROS * colaEnviosADomicilio;
+    crearListaVentas(&listaRetirosEnSucursal);
+    ST_COLALIBROS colaEnviosADomicilio;
+    crearCola(&colaEnviosADomicilio);
 
-    iniciarConsola(ptrArchivo, &listaRetirosEnSucursal , colaEnviosADomicilio);
+    iniciarConsola(ptrArchivo, &listaRetirosEnSucursal , &colaEnviosADomicilio);
 
     fclose(ptrArchivo);
     fclose(ptrArchivoa);

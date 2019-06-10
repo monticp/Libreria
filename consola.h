@@ -11,5 +11,9 @@ void buscarLibro (FILE*ptrArchivo, ST_LISTAVENTAS ** listaRetirosEnSucursal, ST_
 void seleccionarLibro (FILE*ptrArchivo, ST_LISTAVENTAS ** listaRetirosEnSucursal, ST_COLALIBROS * colaEnviosADomicilio);
 void gestionarLibro (int libroiesimo, FILE *ptrArchivo, ST_LISTAVENTAS ** listaRetirosEnSucursal, ST_COLALIBROS * colaEnviosADomicilio);
 void ventaLibro (FILE *ptrArchivo, ST_LISTALIBROS ** listaVentas, ST_LISTAVENTAS ** listaRetirosPorSucursal, ST_COLALIBROS * colaEnviosADomicilio);
+void elegirModoDeEntrega (FILE*ptrArchivo, int factura, ST_LISTALIBROS ** listaVentas, ST_LISTAVENTAS ** listaRetirosPorSucursal, ST_COLALIBROS * colaEnviosADomicilio);
+void gestionEntregaDeLibros (FILE*ptrArchivo, ST_LISTAVENTAS ** listaRetirosPorSucursal, ST_COLALIBROS * colaEnviosADomicilio);
+void retirosPorSucursal (FILE*ptrArchivo, ST_LISTAVENTAS ** listaRetirosPorSucursal, ST_COLALIBROS * colaEnviosADomicilio);
+void enviosADomicilio (FILE*ptrArchivo, ST_LISTAVENTAS ** listaRetirosPorSucursal, ST_COLALIBROS * colaEnviosADomicilio);
 
 #endif // CONSOLA_H_INCLUDED
