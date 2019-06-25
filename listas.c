@@ -49,23 +49,45 @@ ST_LISTAVENTAS * crearNodoVentas (int factura, ST_LISTALIBROS ** listaLibros){
 void agregarLibroALista (int libroIesimo, FILE * ptrArchivo, ST_LISTALIBROS ** listaLibro){
         int confirmacion = 0;
         ST_LIBRO libro;
+        fseek(ptrArchivo, libroIesimo*sizeof(ST_LIBRO), SEEK_SET);
+        fread(&libro, sizeof (ST_LIBRO), 1, ptrArchivo);
+    if ((libroIesimo>=0)&&(encontrarLibroEnLista(libro.ISBN, listaLibro)==0)){
         printf ("\nEsta seguro que desea agregar el libro a la lista de venta? '1'=si - '0'=no\n");
         scanf ("%i", &confirmacion);
         if (confirmacion==1){
-                if(libroIesimo != -1){
-                    fseek(ptrArchivo, libroIesimo*sizeof(ST_LIBRO), SEEK_SET);
-                    fread(&libro, sizeof (ST_LIBRO), 1, ptrArchivo);
-                    if (libro.stockDisponible>0){
-                        ST_LISTALIBROS * nodo = crearNodoLista(&libro);
-                        nodo->ste = *listaLibro;
-                        *listaLibro = nodo;
-                        }
-                    else{
-                        printf ("\n El artículo no se encuentra en stock \n");
-                        system("pause");
-                        }
-                    }
+            if (libro.stockDisponible>0){
+                ST_LISTALIBROS * nodo = crearNodoLista(&libro);
+                nodo->ste = *listaLibro;
+                *listaLibro = nodo;
                 }
+            else{
+                printf ("\n El artículo no se encuentra en stock \n");
+                system("pause");
+                }
+        }
+    }
+}
+
+int encontrarLibroEnLista (char * ISBN, ST_LISTALIBROS ** listaVentas){
+        int libroEncontrado = 0;
+        ST_LISTALIBROS * aux = *listaVentas;
+        while ((aux!=NULL)&&(strcmp(aux->libro.ISBN,ISBN)!=0)){
+            aux = aux->ste;
+        }
+        if ((aux!=NULL)&&(strcmp(aux->libro.ISBN,ISBN)==0)){
+            libroEncontrado = 1;
+            printf("\nLibro previamente cargado.\n");
+            system("pause");
+        }
+        return libroEncontrado;
+}
+
+void vaciarLista (ST_LISTALIBROS ** listaVentas){
+        while ((*listaVentas)!=NULL){
+            ST_LISTALIBROS * aux = *listaVentas;
+            *listaVentas = (*listaVentas)->ste;
+            free (aux);
+        }
 }
 
 void mostrarListaLibros (ST_LISTALIBROS ** listaLibros){
@@ -90,46 +112,65 @@ void mostrarListaLibros (ST_LISTALIBROS ** listaLibros){
 
 }
 
+void generarNombreFactura (char * nombreFactura, int * factura){
+        char numeroFactura [longNumeroFactura];
+        strcpy (nombreFactura,"Factura");
+        strcat(nombreFactura,enteroACadena((*factura),numeroFactura));
+        strcat(nombreFactura, ".txt");
+        FILE * ptrFactura = NULL;
+        while ((ptrFactura=fopen(nombreFactura, "rb+"))!=NULL){
+            (*factura) ++;
+            strcpy(nombreFactura, "Factura");
+            strcat(nombreFactura,enteroACadena((*factura),numeroFactura));
+            strcat(nombreFactura, ".txt");
+        }
+}
+
+void imprimirFecha (int factura, FILE * ptrFactura){
+        char buffTime[20];
+        time_t Time;
+        struct tm * timeInfo;
+        time(&Time);
+        timeInfo = localtime (&Time);
+        strftime(buffTime, sizeof(buffTime), "%b %d %H:%M", timeInfo);
+        fprintf(ptrFactura, "\n Factura %i \n Fecha: %s\n", factura, buffTime);
+}
+
+double imprimirListaEnFactura (FILE * ptrFactura, ST_LISTALIBROS ** listaVenta){
+        ST_LISTALIBROS * cabecera = *listaVenta;
+        double totalPrecio = 0;
+        if (cabecera!=NULL){
+            fprintf(ptrFactura, "\n ISBN: %s \t Titulo: %s \t Precio: %4.2f\n", cabecera->libro.ISBN, cabecera->libro.titulo, cabecera->libro.precio);
+            totalPrecio = totalPrecio + cabecera->libro.precio;
+            }
+        while ((cabecera!=NULL)&&(cabecera->ste!=NULL)){
+            fprintf(ptrFactura, "\n ISBN: %s \t Titulo: %s \t Precio: %4.2f\n", cabecera->ste->libro.ISBN, cabecera->ste->libro.titulo, cabecera->ste->libro.precio);
+            totalPrecio = totalPrecio + cabecera->ste->libro.precio;
+            cabecera = cabecera->ste;
+        }
+    return totalPrecio;
+}
+
 int generarFactura (ST_LISTALIBROS ** listaVenta){
         int factura = 1;
         printf ("\n Esta seguro que desea realizar la compra? '1'=confirmar - '0'= Cancelar\n");
         int confirmacion = 0;
         scanf ("%i", &confirmacion);
         if ((confirmacion == 1)&&(*listaVenta!=NULL)){
-            char numeroFactura [longNumeroFactura];
-            char nombreFactura [longNombreFactura] = "Factura";
-            strcat(nombreFactura,enteroACadena(factura,numeroFactura));
-            strcat(nombreFactura, ".txt");
             FILE * ptrFactura = NULL;
-            while ((ptrFactura=fopen(nombreFactura, "rb+"))!=NULL){
-                factura ++;
-                strcpy(nombreFactura, "Factura");
-                strcat(nombreFactura,enteroACadena(factura,numeroFactura));
-                strcat(nombreFactura, ".txt");
-            }
+            char nombreFactura [longNombreFactura];
+            generarNombreFactura(nombreFactura, &factura);
             if ((ptrFactura=fopen(nombreFactura, "a"))==NULL){
                 exit(EXIT_FAILURE);
             }
-            char buffTime[20];
-            time_t Time;
-            struct tm * timeInfo;
-            time(&Time);
-            timeInfo = localtime (&Time);
-            strftime(buffTime, sizeof(buffTime), "%b %d %H:%M", timeInfo);
-            fprintf(ptrFactura, "\n Factura %i \n Fecha: %s\n", factura, buffTime);
-            ST_LISTALIBROS * cabecera = *listaVenta;
-            double totalPrecio = 0;
-            if (cabecera!=NULL){
-                fprintf(ptrFactura, "\n ISBN: %s \t Titulo: %s \t Precio: %4.2f\n", cabecera->libro.ISBN, cabecera->libro.titulo, cabecera->libro.precio);
-                totalPrecio = totalPrecio + cabecera->libro.precio;
-                }
-            while ((cabecera!=NULL)&&(cabecera->ste!=NULL)){
-                fprintf(ptrFactura, "\n ISBN: %s \t Titulo: %s \t Precio: %4.2f\n", cabecera->ste->libro.ISBN, cabecera->ste->libro.titulo, cabecera->ste->libro.precio);
-                totalPrecio = totalPrecio + cabecera->ste->libro.precio;
-                cabecera = cabecera->ste;
-            }
+            imprimirFecha(factura, ptrFactura);
+            double totalPrecio = imprimirListaEnFactura(ptrFactura, listaVenta);
             fprintf(ptrFactura, "\n \t Total: \t  %4.2f \n", totalPrecio);
             fclose(ptrFactura);
+        }
+        else {
+
+            factura = -1;
         }
     return factura;
 }
@@ -191,7 +232,7 @@ ST_LISTAVENTAS * buscarEnListaVentas (int factura, ST_LISTAVENTAS ** listaVentas
             while ((aux!=NULL)&&(aux->ste!=NULL)&&(factura!=aux->IDFactura)){
                 aux = aux->ste;
             }
-            if (factura==aux->IDFactura){
+            if ((aux!=NULL)&&(factura==aux->IDFactura)){
                 return aux;
             }
             else{
@@ -220,23 +261,31 @@ void agregarVentaACola (int factura, ST_LISTALIBROS ** listaVenta, ST_COLALIBROS
 void mostrar5ElementosDeCola (ST_COLALIBROS * colaVentas){
         ST_LISTAVENTAS * aux = colaVentas->inicio;
         int cont = 0;
-        if(aux!=NULL){
-            printf("\n Venta:\n");
-            printf("Factura: %i\n", aux->IDFactura);
-            printf("Cant. de libros: %i\n", aux->cantLibros);
-            printf("Total a pagar: %4.2f\n", aux->precioTotal);
-        }
-        while ((cont <4)&&(aux->ste!=NULL)){
-            aux = aux->ste;
+        while ((cont <5)&&(aux!=NULL)){
             printf("\n Venta:\n");
             printf("Factura: %i\n", aux->IDFactura);
             printf("Cant. de libros: %i\n", aux->cantLibros);
             printf("Total a pagar: %4.2f\n", aux->precioTotal);
             cont++;
+            aux = aux->ste;
         }
 }
 
-//Corregir
+void imprimirVenta (ST_LISTAVENTAS * ventaSeleccionada){
+        printf("\n Venta:\n");
+        printf("Factura: %i\n", ventaSeleccionada->IDFactura);
+        printf("Cant. libros: %i\n", ventaSeleccionada->cantLibros);
+        printf("Total: $%4.2f", ventaSeleccionada->precioTotal);
+}
+
+void actualizarStockReservado(ST_LISTALIBROS * auxLibro, FILE * ptrArchivo){
+        ST_LIBRO libroSeleccionado;
+        int seleccionIesima = seleccionarLibroPorISBN(auxLibro->libro.ISBN, &libroSeleccionado, ptrArchivo);
+        libroSeleccionado.stockReservado--;
+        fseek(ptrArchivo,seleccionIesima*sizeof(ST_LIBRO),SEEK_SET);
+        fwrite(&libroSeleccionado, sizeof(ST_LIBRO),1, ptrArchivo);
+    }
+
 void eliminarVentaDeLista (FILE * ptrArchivo, ST_LISTAVENTAS ** listaVentas){
         int factura = 0;
         printf("\nIngrese el numero de factura que desea eliminar\n");
@@ -244,10 +293,7 @@ void eliminarVentaDeLista (FILE * ptrArchivo, ST_LISTAVENTAS ** listaVentas){
         ST_LISTAVENTAS * ventaSeleccionada = buscarEnListaVentas(factura, listaVentas);
         if (ventaSeleccionada!=NULL){
             system("cls");
-            printf("\n Venta:\n");
-            printf("Factura: %i\n", ventaSeleccionada->IDFactura);
-            printf("Cant. libros: %i\n", ventaSeleccionada->cantLibros);
-            printf("Total: $%4.2f", ventaSeleccionada->precioTotal);
+            imprimirVenta(ventaSeleccionada);
             printf("\n Esta seguro que desea eliminar la venta? '1'=Si - '0'=No\n");
             int verificacion = 0;
             scanf("%i", &verificacion);
@@ -257,13 +303,12 @@ void eliminarVentaDeLista (FILE * ptrArchivo, ST_LISTAVENTAS ** listaVentas){
                     aux = aux->ste;
                 }
                 aux->ste = ventaSeleccionada->ste;
-                while (ventaSeleccionada->listaLibro->ste!=NULL){
+                if (aux = ventaSeleccionada){
+                    *listaVentas = NULL;
+                }
+                while (ventaSeleccionada->listaLibro!=NULL){
                     ST_LISTALIBROS * auxLibro = ventaSeleccionada->listaLibro;
-                    ST_LIBRO libroSeleccionado;
-                    int seleccionIesima = seleccionarLibroPorISBN(auxLibro->libro.ISBN, &libroSeleccionado, ptrArchivo);
-                    libroSeleccionado.stockReservado--;
-                    fseek(ptrArchivo,seleccionIesima*sizeof(ST_LIBRO),SEEK_SET);
-                    fwrite(&libroSeleccionado, sizeof(ST_LIBRO),1, ptrArchivo);
+                    actualizarStockReservado(auxLibro, ptrArchivo);
                     ventaSeleccionada->listaLibro = ventaSeleccionada->listaLibro->ste;
                     free(auxLibro);
                 }
@@ -276,15 +321,15 @@ void eliminarVentaDeLista (FILE * ptrArchivo, ST_LISTAVENTAS ** listaVentas){
         }
 }
 
-//Corregir
-void remover5ElementosDeCola (ST_COLALIBROS * colaVentas){
+
+void remover5ElementosDeCola (ST_COLALIBROS * colaVentas, FILE * ptrArchivo){
         ST_LISTAVENTAS * auxVenta;
         int cont = 0;
         while ((colaVentas->inicio!=NULL)&&(cont<5)){
             auxVenta = colaVentas->inicio;
-            ST_LISTALIBROS * aux;
             while (colaVentas->inicio->listaLibro!=NULL){
-                aux = colaVentas->inicio->listaLibro;
+                ST_LISTALIBROS * aux = colaVentas->inicio->listaLibro;
+                actualizarStockReservado(aux, ptrArchivo);
                 colaVentas->inicio->listaLibro = colaVentas->inicio->listaLibro->ste;
                 free(aux);
             }

@@ -30,6 +30,8 @@ void crearListaVentas (ST_LISTAVENTAS ** cabecera);
 
 void agregarLibroALista (int libroIesimo, FILE * ptrArchivo, ST_LISTALIBROS ** listaVentas);
 
+void vaciarLista (ST_LISTALIBROS ** listaVentas);
+
 void mostrarListaLibros (ST_LISTALIBROS ** listaLibros);
 
 void actualizarStock (FILE*ptrArchivo, ST_LISTALIBROS ** listaVentas);
@@ -47,5 +49,7 @@ void crearCola (ST_COLALIBROS * colaVentas);
 void agregarVentaACola (int factura, ST_LISTALIBROS ** listaVenta, ST_COLALIBROS * colaVentas);
 
 void mostrar5ElementosDeCola (ST_COLALIBROS * colaVentas);
+
+void remover5ElementosDeCola (ST_COLALIBROS * colaVentas, FILE * ptrArchivo);
 
 #endif // LISTAS_H_INCLUDED

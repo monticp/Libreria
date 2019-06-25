@@ -96,7 +96,7 @@ int buscarLibroVacio (FILE*ptrArchivo){
             return cont;
             }
 
-            }
+        }
     return cont;
 }
 
@@ -126,8 +126,6 @@ ST_LIBRO crearLibro (){
     scanf("%lf", &libro.precio);
     printf("Ingresar el stock disponible\n");
     scanf("%d", &libro.stockDisponible);
-    printf("Ingresar el stock reservado\n");
-    scanf("%d", &libro.stockReservado);
     return libro;
 }
 
@@ -161,7 +159,7 @@ int seleccionarLibroPorISBN(char * ISBN, ST_LIBRO * libro, FILE * ptrArchivo){
         fread(libro,sizeof(ST_LIBRO),1,ptrArchivo);
         cont++;
     }
-    if (cont>contarLibros(ptrArchivo)){
+    if (strcmp(libro->ISBN, ISBN)!=0){
         return -1;
     }
     return cont;
@@ -177,6 +175,7 @@ int buscarLibroPorISBN (FILE*ptrArchivo){
 }
 
 void mostrarLibro (ST_LIBRO libro){
+    printf("\n Libro: \n");
     printf ("ISBN: %s\n", libro.ISBN);
     printf ("Título: %s\n", libro.titulo);
     printf ("Autor: %s %s\n", libro.autor.nombre, libro.autor.apellido);
@@ -187,32 +186,40 @@ void mostrarLibro (ST_LIBRO libro){
 
 void mostrarLibroIesimo (int i, FILE *ptrArchivo){
         ST_LIBRO libro;
-        fseek(ptrArchivo,i*sizeof(ST_LIBRO),SEEK_SET);
-        fread(&libro,sizeof(ST_LIBRO),1,ptrArchivo);
-        mostrarLibro(libro);
-}
-
-void eliminarLibro (int i, FILE*ptrArchivo){
-        ST_LIBRO libro;
-        strcpy(libro.ISBN, "");
-        strcpy(libro.titulo, "");
-        strcpy(libro.autor.apellido, "");
-        strcpy(libro.autor.nombre, "");
-        libro.precio = 0;
-        libro.stockDisponible = 0;
-        libro.stockReservado = 0;
-        printf("¿Esta seguro que desea eliminar el libro? Y/N \n");
-        char confirmacion = 'N';
-        while (getchar()!='\n');
-        scanf ("%c", &confirmacion);
-        if ((confirmacion == 'Y')||(confirmacion == 'y')){
+        if(i>=0){
             fseek(ptrArchivo,i*sizeof(ST_LIBRO),SEEK_SET);
-            fwrite(&libro,sizeof(ST_LIBRO),1,ptrArchivo);
+            fread(&libro,sizeof(ST_LIBRO),1,ptrArchivo);
+            mostrarLibro(libro);
+        }
+        else{
+            perror("\nEl libro ingresado no existe\n");
         }
 }
 
+void eliminarLibro (int i, FILE*ptrArchivo){
+            ST_LIBRO libro;
+        if (i>=0){
+            strcpy(libro.ISBN, "");
+            strcpy(libro.titulo, "");
+            strcpy(libro.autor.apellido, "");
+            strcpy(libro.autor.nombre, "");
+            libro.precio = 0;
+            libro.stockDisponible = 0;
+            libro.stockReservado = 0;
+            printf("¿Esta seguro que desea eliminar el libro? Y/N \n");
+            char confirmacion = 'N';
+            while (getchar()!='\n');
+                scanf ("%c", &confirmacion);
+                if ((confirmacion == 'Y')||(confirmacion == 'y')){
+                    fseek(ptrArchivo,i*sizeof(ST_LIBRO),SEEK_SET);
+                    fwrite(&libro,sizeof(ST_LIBRO),1,ptrArchivo);
+                }
+            }
+        }
+
 
 void editarLibro (int libroiesimo, FILE*ptrArchivo){
+    if (libroiesimo>=0){
         fseek(ptrArchivo,libroiesimo*(sizeof(ST_LIBRO)),SEEK_SET);
         printf ("Ingrese 0 en caso de no querer cambiar ISBN, titulo o autor \n");
         ST_LIBRO libroNuevo = crearLibro();
@@ -233,6 +240,7 @@ void editarLibro (int libroiesimo, FILE*ptrArchivo){
         if (libroNuevo.precio == 0){
             libroNuevo.precio = libroViejo.precio;
         }
+        libroNuevo.stockReservado = libroViejo.stockReservado;
         printf("Libro nuevo:\n");
         mostrarLibro(libroNuevo);
         printf("\nLibro actual:\n");
@@ -242,9 +250,11 @@ void editarLibro (int libroiesimo, FILE*ptrArchivo){
         while (getchar()!='\n');
         scanf ("%c", &confirmacion);
         if ((confirmacion == 'Y')||(confirmacion == 'y')){
-        fseek(ptrArchivo,libroiesimo*(sizeof(ST_LIBRO)),SEEK_SET);
-        fwrite(&libroNuevo,sizeof(ST_LIBRO),1,ptrArchivo);
+            fseek(ptrArchivo,libroiesimo*(sizeof(ST_LIBRO)),SEEK_SET);
+            fwrite(&libroNuevo,sizeof(ST_LIBRO),1,ptrArchivo);
+            }
         }
-}
+    }
+
 
 

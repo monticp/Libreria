@@ -155,6 +155,17 @@ void gestionarLibro (int libroiesimo, FILE*ptrArchivo, ST_LISTAVENTAS ** listaRe
 }
 }
 
+void finalizarSeleccionDeLibros (FILE*ptrArchivo, int factura, ST_LISTALIBROS ** listaVentas, ST_LISTAVENTAS ** listaRetirosPorSucursal, ST_COLALIBROS * colaEnviosADomicilio){
+    if (factura>0){
+        actualizarStock(ptrArchivo, listaVentas);
+        elegirModoDeEntrega(ptrArchivo, factura, listaVentas, listaRetirosPorSucursal, colaEnviosADomicilio);
+    }
+    else{
+        vaciarLista(listaVentas);
+        iniciarConsola(ptrArchivo, listaRetirosPorSucursal , colaEnviosADomicilio);
+    }
+}
+
 void ventaLibro (FILE *ptrArchivo, ST_LISTALIBROS ** listaVentas, ST_LISTAVENTAS ** listaRetirosPorSucursal, ST_COLALIBROS * colaEnviosADomicilio){
         int N = -1;
         listarLibros(ptrArchivo);
@@ -185,12 +196,11 @@ void ventaLibro (FILE *ptrArchivo, ST_LISTALIBROS ** listaVentas, ST_LISTAVENTAS
             system ("cls");
             mostrarListaLibros(listaVentas);
             factura = generarFactura(listaVentas);
-            actualizarStock(ptrArchivo, listaVentas);
-            elegirModoDeEntrega(ptrArchivo, factura, listaVentas, listaRetirosPorSucursal, colaEnviosADomicilio);
+            finalizarSeleccionDeLibros(ptrArchivo, factura, listaVentas, listaRetirosPorSucursal, colaEnviosADomicilio);
             break;
         case 4:
             system("cls");
-            iniciarConsola(ptrArchivo, listaRetirosPorSucursal , colaEnviosADomicilio);
+            finalizarSeleccionDeLibros(ptrArchivo, factura, listaVentas, listaRetirosPorSucursal, colaEnviosADomicilio);
             break;
 }
 }
@@ -274,7 +284,7 @@ void enviosADomicilio (FILE*ptrArchivo, ST_LISTAVENTAS ** listaRetirosPorSucursa
         switch (N){
         case 1:
             system("cls");
-            remover5ElementosDeCola(colaEnviosADomicilio);
+            remover5ElementosDeCola(colaEnviosADomicilio, ptrArchivo);
             system("cls");
             mostrar5ElementosDeCola(colaEnviosADomicilio);
             enviosADomicilio(ptrArchivo, listaRetirosPorSucursal, colaEnviosADomicilio);
